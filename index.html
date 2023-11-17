@@ -5,7 +5,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Incremental Game UI</title>
-    <!-- Add your CSS styles here -->
+    <style>
+        #skillTree {
+            width: 100%;
+            height: 600px;
+            overflow: hidden;
+            border: 1px solid #ccc;
+            position: relative;
+        }
+        
+        #treeSvg {
+            cursor: grab;
+        }
+        
+        #unlockButton {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            display: none;
+        }
+    </style>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -143,6 +162,7 @@
                     <div id="bosses" class="tab locked">Bosses</div>
                     <div id="research" class="tab locked">Research</div>
                     <div id="rebirth" class="tab locked">Rebirth</div>
+                    <div id="skills" class="tab">Skills</div>
                 </div>
 
                 <div class="content">
@@ -299,20 +319,217 @@
                     <div id="tab-rebirth" style="display: none;">
                         <!-- Content for Tab 4 (initially hidden) -->
                         <p id="clonesOnRebirth"></p>
-                        <a>Warning: Rebirthing will reset all your stats, but you retain all your knoledge, and your max number of clones is set to the clones on rebirth.</a>
+                        <a>Warning: Rebirthing will reset all your stats, but you retain all your knowledge, and your max number of clones is set to the clones on rebirth.</a>
                         <br><br>
                         <button class="dangerousButton" onclick="rebirth()">Rebirth</button>
+                    </div>
+
+                    <div id="tab-skills" style="display: none;">
+                        <div id="skillTree">
+                            <svg id="treeSvg" width="100%" height="100%" viewBox="0 0 600 600">
+                              <!-- SVG elements for the skill tree will be dynamically added here -->
+                            </svg>
+                            <button id="unlockButton" onclick="unlockSkill()">Unlock Skill</button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    <script>
+        const skillTreeData = [{
+                id: 1,
+                x: 0,
+                y: 0,
+                r: 33,
+                unlocked: true
+            }, {
+                id: 2,
+                x: 100,
+                y: 0,
+                unlocked: false,
+                parent: 1
+            }, {
+                id: 3,
+                x: 200,
+                y: 100,
+                unlocked: false,
+                parent: 2
+            }, {
+                id: 4,
+                x: 300,
+                y: 100,
+                unlocked: false,
+                parent: 3
+            }, {
+                id: 5,
+                x: 400,
+                y: 200,
+                unlocked: false,
+                parent: 4
+            }, {
+                id: 6,
+                x: 300,
+                y: 300,
+                unlocked: false,
+                parent: 5
+            }, {
+                id: 7,
+                x: 500,
+                y: 300,
+                unlocked: false,
+                parent: 5
+            }, {
+                id: 8,
+                x: 500,
+                y: 200,
+                unlocked: false,
+                parent: 5
+            }, {
+                id: 9,
+                x: 600,
+                y: 300,
+                unlocked: false,
+                parent: 8
+            }, {
+                id: 10,
+                x: 600,
+                y: 400,
+                unlocked: false,
+                parent: 9
+            }, {
+                id: 11,
+                x: 500,
+                y: 400,
+                unlocked: false,
+                parent: 10
+            }, {
+                id: 12,
+                x: 600,
+                y: 500,
+                unlocked: false,
+                parent: 10
+            }, {
+                id: 13,
+                x: 600,
+                y: 200,
+                unlocked: false,
+                parent: 9
+            }, {
+                id: 14,
+                x: 700,
+                y: 400,
+                unlocked: false,
+                parent: 9
+            },
+            // Add more levels as needed
+        ];
 
+        const svgContainer = document.getElementById('treeSvg');
+        const unlockButton = document.getElementById('unlockButton');
+        let dragging = false;
+        let startX, startY;
+
+        function createSkillNode(skill) {
+            const node = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            node.setAttribute('cx', skill.x + 300);
+            node.setAttribute('cy', -skill.y + 300);
+            node.setAttribute('r', (skill.r) ? skill.r : 20);
+            node.setAttribute('fill', skill.unlocked ? '#00ff00' : '#cccccc');
+            node.setAttribute('stroke', '#000000');
+            node.setAttribute('stroke-width', 2);
+            node.setAttribute('data-skill-id', skill.id);
+
+            if (!skill.unlocked) {
+                node.addEventListener('click', () => showUnlockButton(skill));
+            }
+
+            const parentSkill = getParentSkill(skill);
+            if (parentSkill) {
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', skill.x + 300);
+                line.setAttribute('y1', -skill.y + 300);
+                line.setAttribute('x2', parentSkill.x + 300);
+                line.setAttribute('y2', -parentSkill.y + 300);
+                line.setAttribute('stroke', '#000000');
+                line.setAttribute('stroke-width', 2);
+                svgContainer.appendChild(line);
+            }
+
+            svgContainer.appendChild(node);
+        }
+
+        function getParentSkill(skill) {
+            if (!skill.parent) return null;
+            return skillTreeData.find((s) => s.id === skill.parent);
+        }
+
+        function showUnlockButton(skill) {
+            unlockButton.style.display = 'block';
+            unlockButton.onclick = () => unlockSkill(skill);
+            unlockButton.style.left = `${startX - 300}px`;
+            unlockButton.style.top = `${startY - 75}px`;
+        }
+
+        function unlockSkill(skill) {
+            if (!skill) {
+                unlockButton.style.display = 'none';
+                return;
+            }
+            if (isUnlocked(skill.parent)) {
+                skill.unlocked = true;
+                updateSkillNode(skill);
+                unlockButton.style.display = 'none';
+            }
+        }
+
+        function isUnlocked(skillId) {
+            const skill = skillTreeData.find((s) => s.id === skillId);
+            return skill ? skill.unlocked : true;
+        }
+
+        function updateSkillNode(skill) {
+            const node = document.querySelector(`[data-skill-id="${skill.id}"]`);
+            node.setAttribute('fill', '#00ff00');
+            node.removeEventListener('click', () => showUnlockButton(skill));
+        }
+
+        function renderSkillTree() {
+            skillTreeData.forEach(createSkillNode);
+        }
+
+        renderSkillTree();
+
+        svgContainer.addEventListener('mousedown', (e) => {
+            dragging = true;
+            svgContainer.style.cursor = 'grabbing';
+            startX = e.clientX;
+            startY = e.clientY;
+        });
+
+        svgContainer.addEventListener('mousemove', (e) => {
+            if (!dragging) return;
+
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
+
+            svgContainer.viewBox.baseVal.x -= deltaX;
+            svgContainer.viewBox.baseVal.y -= deltaY;
+
+            startX = e.clientX;
+            startY = e.clientY;
+        });
+
+        window.addEventListener('mouseup', () => {
+            dragging = false;
+            svgContainer.style.cursor = 'grab';
+        });
+    </script>
     <script>
         let HP = 10;
         let MaxHP = 10;
 
-        // [totalvalue, basedifficulty, difficulty, level, value, trainers, progressBar]
+        // [totalValue, baseDifficulty, difficulty, level, value, trainers, progressBar]
         let training = [
             [0, 100 / 60, 1, 0, 0, 0, document.getElementById("training-punching")],
             [0, 200 / 60, 1, 0, 0, 0, document.getElementById("training-kicking")]
@@ -341,7 +558,7 @@
         const bosses = [
             // Slime
             [
-                "You find yourself in a dark cave. You don't know where you are or what you're doing here. You decide to follow one of the tunnels ahead of you. Down the tunnel you find the cave opens up into an underground forest grove. You see a hole in the ceiling. The light from the hole shines down onto the top of a hill where a slime... lie? stood? anyway it was just there. You realize fast that if you want to make it out you're going to have to take care of that slime.\n\nYou back up and decide to train for the battle. You practice punching. Your form is sloppy one couldn't even call it a punch. You also try getting in some kicks, which are harder and aiming your kicks turns to be much more difficult. It almost felt embarrasing how bad you were doing, but you couldn't tell why. After several hours of training you finally felt pumped enough to take this thing on. The slime was still sitting there in it's pitiful state. A once terrifying monster now lies there simpl-\n\n Before you could finish thinking the slime jumps at your face. Thanks to your training you're able to react fast enough to hit it out of the way, and while it was flying away from your punch you decide to kick it while it still mid air. The force of the kick makes the slime form around your leg just for it to sling shot up. The slime hit the ceiling and got pierced by one of the stalactites that hung by the ceiling. The slime drooped back down and smashed against the floor. 'Your a formidable foe, but you will never defeat my brother, big slime. Only he knows the way to get out of here.' Understanding that the hole you saw above you is a bit too high out of reach you know you must train more to defeat 'Big Slime'.",
+                "You find yourself in a dark cave. You don't know where you are or what you're doing here. You decide to follow one of the tunnels ahead of you. Down the tunnel you find the cave opens up into an underground forest grove. You see a hole in the ceiling. The light from the hole shines down onto the top of a hill where a slime... lie? stood? anyway it was just there. You realize fast that if you want to make it out you're going to have to take care of that slime.\n\nYou back up and decide to train for the battle. You practice punching. Your form is sloppy one couldn't even call it a punch. You also try getting in some kicks, which are harder and aiming your kicks turns to be much more difficult. It almost felt embarrassing how bad you were doing, but you couldn't tell why. After several hours of training you finally felt pumped enough to take this thing on. The slime was still sitting there in it's pitiful state. A once terrifying monster now lies there simpl-\n\n Before you could finish thinking the slime jumps at your face. Thanks to your training you're able to react fast enough to hit it out of the way, and while it was flying away from your punch you decide to kick it while it still mid air. The force of the kick makes the slime form around your leg just for it to sling shot up. The slime hit the ceiling and got pierced by one of the stalactites that hung by the ceiling. The slime drooped back down and smashed against the floor. 'Your a formidable foe, but you will never defeat my brother, big slime. Only he knows the way to get out of here.' Understanding that the hole you saw above you is a bit too high out of reach you know you must train more to defeat 'Big Slime'.",
                 "Bosses/Slime.png", [
                     "Slime",
                     10,
@@ -433,7 +650,8 @@
             "training",
             "bosses",
             "research",
-            "rebirth"
+            "rebirth",
+            "skills"
         ];
         let lockedMenus = [
             "bosses",
