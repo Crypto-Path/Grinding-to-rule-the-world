@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incremental Game UI</title>
+    <!-- Add your CSS styles here -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        
+        .container {
+            width: 70%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            background-color: #eee;
+            cursor: pointer;
+        }
+        
+        .tab.locked {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .content {
+            border: 1px solid #888;
+            background-color: #ccc;
+            padding: 20px;
+            min-height: 200px;
+        }
+        
+        .bar {
+            background-color: rgb(62, 240, 240);
+            height: 100%;
+            border-radius: 10px;
+        }
+        
+        .barContainer {
+            background-color: rgb(126, 126, 126);
+            width: 250px;
+            height: 30px;
+            border-radius: 10px;
+        }
+        
+        .trainingContainer {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .researchContainer {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .healthBarContainer {
+            background-color: rgb(126, 126, 126);
+            width: 100%;
+            height: 30px;
+            border-radius: 10px;
+        }
+        
+        .bossHealthBarContainer {
+            background-color: rgb(126, 126, 126);
+            width: 50%;
+            height: 30px;
+            border-radius: 10px;
+        }
+        
+        .healthBar {
+            background-color: red;
+            height: 100%;
+            border-radius: 10px;
+        }
+        
+        .bossDescription {
+            overflow-y: scroll;
+            height: 200px;
+            width: 60%;
+        }
+        
+        .centerFlexContent {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .flexLeftToRight {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+        }
+        
+        .miniContainer {
+            width: 20%;
+        }
+        
+        .dangerousButton {
+            background-color: red;
+            border-radius: 10px;
+            width: 100px;
+            height: 60px;
+        }
+        
+        .dangerousButton:hover {
+            background-color: darkred;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <div class="flexLeftToRight">
+            <div class="container miniContainer">
+                <div class="content">
+                    <h2>Adventurer Stats</h2>
+                    <div class="healthBarContainer">
+                        <div id="healthBar" class="healthBar"></div>
+                    </div>
+                    <p id="powerCount"></p>
+                    <p id="cloneCount"></p>
+                </div>
+            </div>
+            <div class="container">
+                <div class="tabs">
+                    <div id="training" class="tab">Training</div>
+                    <div id="bosses" class="tab locked">Bosses</div>
+                    <div id="research" class="tab locked">Research</div>
+                    <div id="rebirth" class="tab locked">Rebirth</div>
+                </div>
+
+                <div class="content">
+                    <div id="tab-training">
+                        <!-- Content for Tab 1 -->
+                        <p>Use your magic clones to train skills.</p>
+                        <!--Punching-->
+                        <div class="trainingContainer">
+                            <div>
+                                <a></a>
+                                <div class="barContainer">
+                                    <div class="bar" id="training-punching"></div>
+                                </div>
+                            </div>
+                            <p></p>
+                            <p></p>
+                            <div>
+                                <button onclick="AddClone('0')">+</button>
+                                <button onclick="RemoveClone('0')">-</button>
+                                <button onclick="CapClones('0')">Cap</button>
+                            </div>
+                        </div>
+                        <!--Kicking-->
+                        <div class="trainingContainer">
+                            <div>
+                                <a></a>
+                                <div class="barContainer">
+                                    <div class="bar" id="training-kicking"></div>
+                                </div>
+                            </div>
+                            <p></p>
+                            <p></p>
+                            <div>
+                                <button onclick="AddClone('1')">+</button>
+                                <button onclick="RemoveClone('1')">-</button>
+                                <button onclick="CapClones('1')">Cap</button>
+                            </div>
+                        </div>
+                        <!--Stretching-->
+                        <div class="trainingContainer" style="display: none;">
+                            <div>
+                                <a></a>
+                                <div class="barContainer">
+                                    <div class="bar" id="training-stretching"></div>
+                                </div>
+                            </div>
+                            <p></p>
+                            <p></p>
+                            <div>
+                                <button onclick="AddClone('2')">+</button>
+                                <button onclick="RemoveClone('2')">-</button>
+                                <button onclick="CapClones('2')">Cap</button>
+                            </div>
+                        </div>
+                        <!--Jumping-->
+                        <div class="trainingContainer" style="display: none;">
+                            <div>
+                                <a></a>
+                                <div class="barContainer">
+                                    <div class="bar" id="training-jumping"></div>
+                                </div>
+                            </div>
+                            <p></p>
+                            <p></p>
+                            <div>
+                                <button onclick="AddClone('3')">+</button>
+                                <button onclick="RemoveClone('3')">-</button>
+                                <button onclick="CapClones('3')">Cap</button>
+                            </div>
+                        </div>
+                        <!--Squatting-->
+                        <div class="trainingContainer" style="display: none;">
+                            <div>
+                                <a></a>
+                                <div class="barContainer">
+                                    <div class="bar" id="training-squatting"></div>
+                                </div>
+                            </div>
+                            <p></p>
+                            <p></p>
+                            <div>
+                                <button onclick="AddClone('4')">+</button>
+                                <button onclick="RemoveClone('4')">-</button>
+                                <button onclick="CapClones('4')">Cap</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tab-bosses" style="display: none;">
+                        <!-- Content for Tab 2 (initially hidden) -->
+                        <div class="centerFlexContent">
+                            <p id="bossPower"></p>
+                            <a id="bossName"></a>
+                            <img id="bossPFP" class="bossPFP" width="33%"></img>
+                            <div class="bossHealthBarContainer">
+                                <div id="bossHealthBar" class="healthBar"></div>
+                            </div>
+                            <br>
+                            <div id="bossLore" class="bossDescription"></div>
+                            <br>
+                            <button onclick="startBossFight()">Fight Boss</button>
+                        </div>
+                    </div>
+
+                    <div id="tab-research" style="display: none;">
+                        <!--Stick-->
+                        <div class="researchContainer">
+                            <div>
+                                <a></a>
+                                <div class="barContainer">
+                                    <div class="bar" id="research-stick"></div>
+                                </div>
+                            </div>
+                            <p></p>
+                            <p></p>
+                            <div>
+                                <button onclick="AddClone('0','research')">+</button>
+                                <button onclick="RemoveClone('0','research')">-</button>
+                                <button onclick="CapClones('0','research')">Cap</button>
+                            </div>
+                        </div>
+                        <div class="researchContainer" style="display: none;">
+                            <div>
+                                <a></a>
+                                <div class="barContainer">
+                                    <div class="bar" id="research-woodenSword"></div>
+                                </div>
+                            </div>
+                            <p></p>
+                            <p></p>
+                            <div>
+                                <button onclick="AddClone('1','research')">+</button>
+                                <button onclick="RemoveClone('1','research')">-</button>
+                                <button onclick="CapClones('1','research')">Cap</button>
+                            </div>
+                        </div>
+                        <div class="researchContainer" style="display: none;">
+                            <div>
+                                <a></a>
+                                <div class="barContainer">
+                                    <div class="bar" id="research-tunic"></div>
+                                </div>
+                            </div>
+                            <p></p>
+                            <p></p>
+                            <div>
+                                <button onclick="AddClone('2','research')">+</button>
+                                <button onclick="RemoveClone('2','research')">-</button>
+                                <button onclick="CapClones('2','research')">Cap</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tab-rebirth" style="display: none;">
+                        <!-- Content for Tab 4 (initially hidden) -->
+                        <p id="clonesOnRebirth"></p>
+                        <a>Warning: Rebirthing will reset all your stats, but you retain all your knoledge, and your max number of clones is set to the clones on rebirth.</a>
+                        <br><br>
+                        <button class="dangerousButton" onclick="rebirth()">Rebirth</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let HP = 10;
+        let MaxHP = 10;
+
+        // [totalvalue, basedifficulty, difficulty, level, value, trainers, progressBar]
+        let training = [
+            [0, 100 / 60, 1, 0, 0, 0, document.getElementById("training-punching")],
+            [0, 200 / 60, 1, 0, 0, 0, document.getElementById("training-kicking")]
+        ]
+
+        // [name, difficulty, level, value, trainers, {stats, statMulti}, progressBar]
+        let research = [
+            ["Stick", 10000 / 60, 0, 0, 0, {
+                power: 10,
+                powerMulti: 1.5
+            }, document.getElementById("research-stick")]
+        ]
+
+        powerMultiplier = 1;
+
+        let clonesInAction = 0;
+
+        // [Power Required, LockedMenuID]
+        let milestones = [
+            [5, "bosses"],
+            [25, "rebirth"]
+        ]
+
+        bossLevel = 0;
+        // [Lore, Boss Sprite Location, [Name, Hp, Def, Dmg], Rewards {tab: , training: , research:}]
+        const bosses = [
+            // Slime
+            [
+                "You find yourself in a dark cave. You don't know where you are or what you're doing here. You decide to follow one of the tunnels ahead of you. Down the tunnel you find the cave opens up into an underground forest grove. You see a hole in the ceiling. The light from the hole shines down onto the top of a hill where a slime... lie? stood? anyway it was just there. You realize fast that if you want to make it out you're going to have to take care of that slime.\n\nYou back up and decide to train for the battle. You practice punching. Your form is sloppy one couldn't even call it a punch. You also try getting in some kicks, which are harder and aiming your kicks turns to be much more difficult. It almost felt embarrasing how bad you were doing, but you couldn't tell why. After several hours of training you finally felt pumped enough to take this thing on. The slime was still sitting there in it's pitiful state. A once terrifying monster now lies there simpl-\n\n Before you could finish thinking the slime jumps at your face. Thanks to your training you're able to react fast enough to hit it out of the way, and while it was flying away from your punch you decide to kick it while it still mid air. The force of the kick makes the slime form around your leg just for it to sling shot up. The slime hit the ceiling and got pierced by one of the stalactites that hung by the ceiling. The slime drooped back down and smashed against the floor. 'Your a formidable foe, but you will never defeat my brother, big slime. Only he knows the way to get out of here.' Understanding that the hole you saw above you is a bit too high out of reach you know you must train more to defeat 'Big Slime'.",
+                "Bosses/Slime.png", [
+                    "Slime",
+                    10,
+                    4,
+                    1
+                ], {
+                    training: [
+                        [0, 300 / 60, 1, 0, 0, 0, document.getElementById("training-stretching")]
+                    ]
+                }
+            ],
+            // Brother, Big Slime
+            [
+                "Reaching for the hole you feel your arm strain and then it felt better. You learnt how to stretch. Using this new skill you know there's no way you'll lose to Big Slime.",
+                "Bosses/BigSlime.png", [
+                    "Big Slime",
+                    20,
+                    10,
+                    5
+                ], {
+                    training: [
+                        [0, 400 / 60, 200, 0, 0, 0, document.getElementById("training-jumping")],
+                        [0, 400 / 60, 200, 0, 0, 0, document.getElementById("training-squatting")]
+                    ]
+                }
+            ],
+            [
+                "",
+                "Bosses/BigSlime.png", [
+                    "Minor Goblin",
+                    50,
+                    25,
+                    10
+                ], {
+                    tab: ["research"]
+                }
+            ],
+            [
+                "",
+                "Bosses/BigSlime.png", [
+                    "Lesser Goblin",
+                    100,
+                    50,
+                    25
+                ], {
+                    research: [
+                        ["Wooden Sword", 1000000 / 60, 0, 0, 0, {
+                            power: 20,
+                            powerMulti: 2
+                        }, document.getElementById("research-woodenSword")]
+                    ]
+                }
+            ],
+            [
+                "",
+                "Bosses/BigSlime.png", [
+                    "Goblin",
+                    200,
+                    100,
+                    40
+                ], {
+                    research: ["Tunic", 100000 / 60, 0, 0, {
+                        health: 2,
+                        healthMulti: 1.5
+                    }, document.getElementById("research-tunic")]
+                }
+            ],
+            [
+                "",
+                "Bosses/BigSlime.png", [
+                    "Greater Goblin",
+                    300,
+                    200,
+                    60
+                ], {}
+            ],
+            [
+                "",
+                "Bosses/BigSlime.png", [
+                    "King Goblin",
+                    500,
+                    250,
+                    80
+                ], {}
+            ]
+        ];
+
+        const menus = [
+            "training",
+            "bosses",
+            "research",
+            "rebirth"
+        ];
+        let lockedMenus = [
+            "bosses",
+            "research",
+            "rebirth"
+        ];
+
+
+
+        cloneCount = 0;
+        maxCloneCount = 1;
+        cloneCountText = document.getElementById("cloneCount");
+        powerCountText = document.getElementById("powerCount");
+
+        power = 0;
+        bossBattling = null;
+
+        const tabs = document.querySelectorAll('.tab');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                if (!tab.classList.contains('locked')) {
+                    showTabContent(tab);
+                } else {
+                    alert('This menu is locked! Please progress further to unlock this menu.');
+                }
+            });
+        });
+
+        function showTabContent(selectedTab) {
+            for (let i = 0; i < menus.length; i++) {
+                const id = "tab-" + menus[i];
+                console.log(id)
+                document.getElementById(id).style.display = "none";
+            }
+
+            const contentId = "tab-" + selectedTab.id;
+            document.getElementById(contentId).style.display = 'block';
+            selectedTab.style.display = 'block';
+        }
+
+
+        // ! [totalValue, baseDifficulty, difficulty, level, value, trainers, progressBar]
+        function checkTraining() {
+            let totalClonesTraining = 0
+            for (let i = 0; i < training.length; i++) {
+                const element = training[i];
+                element[4] += element[5] / 60;
+                element[0] += (bossLevel * element[3] + 1) / 60;
+                if (element[4] >= element[2]) {
+                    element[4] = 0;
+                    element[3]++;
+                }
+                element[2] = element[1] / (Math.max(1, 1 + Math.log10(1 + training[0][0]) / Math.log10(Math.pow(10, 10))));
+                element[6].style.width = `${element[4] / element[2] * 100}%`;
+                if (element[5] / 60 >= element[2]) {
+                    element[6].style.width = `100%`;
+                }
+                element[6].parentElement.parentElement.parentElement.getElementsByTagName('a')[0].innerText = `${element[6].id.split("training-")[1]}`
+                element[6].parentElement.parentElement.parentElement.getElementsByTagName('p')[0].innerText = `${element[3]}`
+                element[6].parentElement.parentElement.parentElement.getElementsByTagName('p')[1].innerText = `${element[5]}`
+                totalClonesTraining += element[5];
+            }
+            return totalClonesTraining;
+        }
+
+        // [name, difficulty, level, value, trainers, {stats, statMulti}, progressBar]
+        function checkResearch() {
+            let totalClonesResearching = 0
+            for (let i = 0; i < research.length; i++) {
+                const element = research[i];
+                const multi = Math.pow(4, element[2] + 1) / 4;
+                element[3] += element[4] / 60;
+                if (element[3] >= element[1] * multi) {
+                    element[3] = 0;
+                    element[2]++;
+                }
+                element[6].style.width = `${element[3] / (element[1] * multi) * 100}%`;
+                if (element[5] / 60 >= (element[1] * multi)) {
+                    element[5].style.width = `100%`;
+                }
+                element[6].parentElement.parentElement.parentElement.getElementsByTagName('a')[0].innerText = `${element[6].id.split("research-")[1]}`
+                element[6].parentElement.parentElement.parentElement.getElementsByTagName('p')[0].innerText = `${element[2]}`
+                element[6].parentElement.parentElement.parentElement.getElementsByTagName('p')[1].innerText = `${element[4]}`
+                totalClonesResearching += element[4];
+            }
+            return totalClonesResearching;
+        }
+
+        function getResearch() {
+            let stats = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            for (let i = 0; i < research.length; i++) {
+                const element = research[i];
+                if (element[5].powerMulti) {
+                    stats[0] += element[5].power * element[2];
+                    stats[1] *= (element[5].powerMulti * element[2] >= 1) ? element[5].powerMulti * element[2] : 1;
+                }
+            }
+            return stats;
+        }
+
+        function getClonesTraining() {
+
+            let totalClonesTraining = 0
+            for (let i = 0; i < training.length; i++) {
+                const element = training[i];
+                totalClonesTraining += element[5];
+            }
+            return totalClonesTraining;
+        }
+
+        function getClonesResearching() {
+
+            let totalClonesResearching = 0
+            for (let i = 0; i < research.length; i++) {
+                const element = research[i];
+                totalClonesResearching += element[4];
+            }
+            return totalClonesResearching;
+        }
+
+        function AddClone(index, type = null) {
+            if (type == null) {
+                if (cloneCount - clonesInAction > 0) {
+                    training[index][5]++;
+                }
+            }
+            if (type == "research") {
+                if (cloneCount - clonesInAction > 0) {
+                    research[index][4]++;
+                }
+            }
+        }
+
+        function CapClones(index, type = null) {
+
+            if (type == null) {
+                for (let i = 0; i < training[index][2] * 60; i++) {
+                    if (cloneCount + training[index][5] - clonesInAction >= Math.floor(training[index][2] * 60 / i) + 1) {
+                        training[index][5] = Math.floor(training[index][2] * 60 / i) + 1;
+                        return;
+                    }
+                }
+            }
+
+            if (type == "research") {
+                for (let i = 0; i < research[index][1] * 60 * Math.pow(4, research[index][2] + 1); i++) {
+                    if (cloneCount + research[index][4] - clonesInAction >= Math.floor(research[index][1] * 60 * Math.pow(4, research[index][2] + 1) / 4 / i) + 1) {
+                        research[index][4] = Math.floor(research[index][1] * 60 * Math.pow(4, research[index][2] + 1) / i) + 1;
+                        return;
+                    }
+                }
+            }
+        }
+
+        function RemoveClone(index, type = null) {
+            if (type == null) {
+                if (training[index][5] > 0) {
+                    training[index][5]--;
+                }
+            }
+
+            if (type == "research") {
+                if (research[index][4] > 0) {
+                    research[index][4]--;
+                }
+            }
+        }
+
+        function checkPower() {
+            let tempPower = 0;
+            for (let i = 0; i < training.length; i++) {
+                tempPower += (Math.log2(training[i][3]) > 0) ? Math.log2(training[i][3]) * getResearch()[1] : 0;
+            }
+            power = tempPower + getResearch()[0];
+            return power;
+        }
+
+        function checkMilestones() {
+            if (milestones.length == 0) return;
+            const id = milestones[0][1];
+            if (power >= milestones[0][0]) {
+                unlockTab(id)
+                const index = milestones.indexOf(milestones[0]);
+                if (index > -1) {
+                    milestones.splice(index, 1);
+                }
+            }
+        }
+
+        function checkLockedTabs() {
+            for (let i = 0; i < lockedMenus.length; i++) {
+                const element = lockedMenus[i];
+                document.getElementById(element).classList.add("locked")
+            }
+        }
+
+        function unlockTab(id) {
+            const index = lockedMenus.indexOf(id);
+            if (index > -1) {
+                lockedMenus.splice(index, 1);
+            }
+            document.getElementById(id).classList.remove('locked');
+        }
+
+        function setBoss() {
+            const boss = bosses[bossLevel];
+            if (boss != null) {
+                document.getElementById("bossHealthBar").style.width = `100%`;
+                document.getElementById("bossPFP").src = boss[1];
+                document.getElementById("bossLore").innerText = boss[0];
+                document.getElementById("bossName").innerText = boss[2][0];
+            }
+        }
+
+        function fightBoss() {
+            if (bossBattling) {
+                HP -= bossBattling[2][3] / 60;
+                if (HP <= 0) {
+                    HP = 0;
+                    bossBattling = null;
+                    setBoss();
+                    return;
+                }
+                document.getElementById("bossHealthBar").style.width = `${bossBattling[2][1] / bosses[bossLevel][2][1] * 100}%`;
+                bossBattling[2][1] -= Math.max(0, power - bossBattling[2][2]) / 60;
+                if (bossBattling[2][1] <= 0) {
+                    bossBattling = null;
+                    getRewards();
+                }
+            }
+            document.getElementById("healthBar").style.width = `${HP / MaxHP * 100}%`;
+        }
+
+        function startBossFight() {
+            bossBattling = JSON.parse(JSON.stringify(bosses[bossLevel]));
+        }
+
+        function getRewards() {
+            if (bosses[bossLevel][3].training != null) {
+                for (let i = 0; i < bosses[bossLevel][3].training.length; i++) {
+                    const train = bosses[bossLevel][3].training[i];
+                    let allow = true;
+                    for (let j = 0; j < training.length; j++) {
+                        const element = training[j];
+                        if (train[6] == element[6]) {
+                            allow = false;
+                        }
+                    }
+                    if (allow) {
+                        training.push(train);
+                        train[6].parentElement.parentElement.parentElement.style.display = "flex";
+                    }
+                }
+            }
+
+            if (bosses[bossLevel][3].research != null) {
+                for (let i = 0; i < bosses[bossLevel][3].research.length; i++) {
+                    const train = bosses[bossLevel][3].research[i];
+                    let allow = true;
+                    for (let j = 0; j < research.length; j++) {
+                        const element = research[j];
+                        if (research[6] == element[6]) {
+                            allow = false;
+                        }
+                    }
+                    if (allow) {
+                        research.push(train);
+                        train[6].parentElement.parentElement.parentElement.style.display = "flex";
+                    }
+                }
+            }
+
+            if (bosses[bossLevel][3].tab != null) {
+                for (let i = 0; i < bosses[bossLevel][3].tab.length; i++) {
+                    unlockTab(bosses[bossLevel][3].tab[i])
+                }
+            }
+            bossLevel++;
+            setBoss();
+        }
+
+        function rebirth() {
+            cloneCount = 0;
+            maxCloneCount = Math.floor(Math.sqrt(power) * Math.pow(2, bossLevel));
+            bossLevel = 0;
+            setBoss()
+            for (let i = 0; i < training.length; i++) {
+                const element = training[i];
+                element[3] = 0;
+                element[4] = 0;
+                element[5] = 0;
+            }
+            for (let i = 0; i < research.length; i++) {
+                const element = research[i];
+                element[2] = 0;
+                element[3] = 0;
+                element[4] = 0;
+            }
+            power = 0;
+        }
+
+        // Delta Time Update Function
+        function update(deltaTime) {
+            clonesInAction = checkTraining() + checkResearch();
+            MaxHP = 10 + Math.sqrt(power);
+            if (HP < MaxHP) {
+                HP += MaxHP / (60 * 60)
+            } else {
+                HP = MaxHP;
+            }
+            cloneCount += (Math.sqrt(power) + 1) / 60
+            if (cloneCount > maxCloneCount) {
+                cloneCount = maxCloneCount;
+            }
+            cloneCountText.innerText = `Your magic clone count: ${Math.floor(cloneCount - clonesInAction)} / ${Math.floor(maxCloneCount)}`;
+            powerCountText.innerText = `Your power is: ${Math.round(checkPower()*10)/10}`;
+            document.getElementById("clonesOnRebirth").innerText = `Clones On Rebirth: ${Math.floor(Math.sqrt(power) * Math.pow(2, bossLevel))} (${Math.round(Math.floor(Math.sqrt(power) * Math.pow(2, bossLevel)) / cloneCount * 100) / 100}). Clones On Rebirth are being multiplied by two to the number of bosses you have defeated (2 ^ ${bossLevel} -> ${Math.pow(2, bossLevel)})`;
+            checkMilestones();
+            fightBoss()
+            requestAnimationFrame(update);
+        }
+        setBoss()
+        update();
+    </script>
+</body>
+
+</html>
